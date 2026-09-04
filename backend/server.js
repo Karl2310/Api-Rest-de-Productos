@@ -1,13 +1,19 @@
+import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { z } from "zod";
+import jwt from "jsonwebtoken";
 import connectDB from "../backend/database.js";
 
 dotenv.config();
 
-const app = express();
+const JWT_SECRET = process.env.SECRET || "mi_secreto_local";
+const DEFAULT_USERNAME = process.env.DEFAULT_USERNAME || "admin";
+const DEFAULT_PASSWORD = process.env.DEFAULT_PASSWORD || "123456";
 
+const app = express();
+app.use(cors());
 app.use(express.json());
 
 connectDB();
@@ -50,9 +56,49 @@ const productSchemaZod = z.object({
     .min(0, "El stock no puede ser negativo")
 });
 
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({
+      error: "Username y password son obligatorios"
+    });
+  }
+
+  if (username !== DEFAULT_USERNAME || password !== DEFAULT_PASSWORD) {
+    return res.status(401).json({
+      error: "Credenciales inválidas"
+    });
+  }
+
+  const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "1h" });
+
+  return res.json({
+    token,
+    user: { username }
+  });
+});
+
+function requiredAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Token requerido" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Token inválido" });
+  }
+}
+
 // POST /products
 
-app.post("/products", async (req, res) => {
+app.post("/products", requiredAuth, async (req, res) => {
   const validation = productSchemaZod.safeParse(req.body);
 
   if (!validation.success) {
@@ -77,7 +123,7 @@ app.post("/products", async (req, res) => {
 
 // GET /products
 
-app.get("/products", async (req, res) => {
+app.get("/products", requiredAuth, async (req, res) => {
   try {
     const products = await ProductMongo.find();
 
@@ -93,7 +139,7 @@ app.get("/products", async (req, res) => {
 
 // GET /products/:id
 
-app.get("/products/:id", async (req, res) => {
+app.get("/products/:id", requiredAuth, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -115,7 +161,7 @@ app.get("/products/:id", async (req, res) => {
 
 // PUT /products/:id
 
-app.put("/products/:id", async (req, res) => {
+app.put("/products/:id", requiredAuth, async (req, res) => {
   const { id } = req.params;
 
   const validation = productSchemaZod.safeParse(req.body);
@@ -153,7 +199,7 @@ app.put("/products/:id", async (req, res) => {
 
 // DELETE /products/:id
 
-app.delete("/products/:id", async (req, res) => {
+app.delete("/products/:id", requiredAuth, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -178,3 +224,4 @@ app.delete("/products/:id", async (req, res) => {
 app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
+
