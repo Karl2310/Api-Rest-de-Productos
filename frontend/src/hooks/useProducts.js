@@ -1,27 +1,31 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 
-const API_URL = 'http://localhost:3000';
-const ENDPOINT = `${API_URL}/products`;
+const API_URL = "http://localhost:3000";
+const AUTH_TOKEN_KEY = "products_auth_token";
 
-export function useProducts() {
-    const token = localStorage.getItem('products_auth_token');
+const getProducts = async () => {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
-    return useQuery({
-        queryKey: ['products', token],
-        queryFn: async () => {
-            const response = await fetch(ENDPOINT, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+  const response = await fetch(`${API_URL}/products`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-            if (!response.ok) {
-                throw new Error('Error cargando los productos');
-            }
+  const result = await response.json();
 
-            const data = await response.json();
-            return data.products ?? [];
-        },
-        enabled: Boolean(token),
-    });
-}
+  if (!response.ok) {
+    throw new Error(
+      result.error || "Error al obtener productos"
+    );
+  }
+
+  return result;
+};
+
+export const useProducts = () => {
+  return useQuery({
+    queryKey: ["products"],
+    queryFn: getProducts,
+  });
+};
