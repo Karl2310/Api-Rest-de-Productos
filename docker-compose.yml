@@ -1,0 +1,23 @@
+services:
+
+  auth-service:
+    build:
+      context: ./microservicios/auth-service
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./microservicios/auth-service/.env
+
+  product-service:
+    build:
+      context: ./microservicios/product-service
+    container_name: product-service
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./microservicios/product-service/.env
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:3001
+    depends_on:
+      - auth-service
