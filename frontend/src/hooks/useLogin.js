@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "http://localhost:3001";
 
 export function useLogin() {
   return useMutation({

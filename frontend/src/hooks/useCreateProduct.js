@@ -3,7 +3,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "http://localhost:3002";
 const AUTH_TOKEN_KEY = "products_auth_token";
 
 const createProduct = async (product) => {

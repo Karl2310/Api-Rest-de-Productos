@@ -4,6 +4,7 @@ import cors from "cors";
 
 import connectDB from "./database.js";
 import productRoutes from "./products/product.routes.js";
+import logger from "./logger.js";
 
 dotenv.config();
 
@@ -14,19 +15,26 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3002;
 
-// Conectar a MongoDB Atlas
-connectDB();
-
-// Ruta de prueba
 app.get("/", (req, res) => {
   res.json({
     message: "Product Service funcionando",
   });
 });
 
-// Rutas de productos
 app.use("/products", productRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Product Service running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  connectDB();
+
+  app.listen(PORT, () => {
+    logger.info(
+      {
+        service: "product-service",
+        port: PORT,
+      },
+      "Product Service iniciado"
+    );
+  });
+}
+
+export default app;
