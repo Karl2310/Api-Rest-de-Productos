@@ -1,103 +1,240 @@
 # API REST de Productos
 
-1. Entrar a la carpeta `backend`.
-2. Ejecutar `npm install`.
-3. Crear un archivo `.env` con tu conexión a MongoDB.
-4. Levantar el proyecto con `npm start`.
+Aplicación full-stack para la gestión de productos, desarrollada con una arquitectura basada en microservicios.
 
+El proyecto incluye autenticación mediante JWT, persistencia con MongoDB Atlas, frontend en React, Docker Compose y diferentes niveles de testing.
 
+---
 
-## Tarea 3 — Refactor arquitectónico
+## Contenido
 
-Se reorganizó el proyecto para mejorar la separación de responsabilidades y facilitar su mantenimiento.
+- [Arquitectura](#arquitectura)
+- [Tecnologías](#tecnologías)
+- [Instalación](#instalación)
+- [Ejecución](#ejecución)
+- [Usuario de prueba](#usuario-de-prueba)
+- [Testing](#testing)
+- [Comandos principales](#comandos-principales)
+- [Evolución del proyecto](#evolución-del-proyecto)
 
-### Backend
+---
 
-El backend fue organizado por dominio dentro de la carpeta `products`:
+## Arquitectura
 
-- `product.routes.js`: recibe y gestiona las peticiones HTTP.
-- `product.service.js`: contiene la lógica de negocio.
-- `product.repository.js`: se encarga del acceso a MongoDB.
-- `product.schema.js`: contiene las validaciones realizadas con Zod.
-- `authMiddleware.js`: valida los tokens JWT.
+El proyecto está compuesto por los siguientes servicios:
 
-Esta estructura permite separar las responsabilidades y evitar que las rutas manejen directamente la lógica de negocio o el acceso a la base de datos.
+- **Auth Service**: gestiona el inicio de sesión y la generación de tokens JWT.
+- **Product Service**: permite crear, consultar y gestionar productos.
+- **Frontend**: interfaz web desarrollada con React.
+- **MongoDB Atlas**: base de datos utilizada para almacenar la información.
+- **Docker Compose**: orquestación de los servicios del backend.
+
+---
+
+## Tecnologías
 
 ### Frontend
 
-La lógica relacionada con las peticiones se extrajo a hooks personalizados:
+- React
+- Vite
+- TanStack Query
+- React Hook Form
+- Zod
+- Playwright
 
-- `useLogin.js`: gestiona el inicio de sesión.
-- `useProducts.js`: obtiene los productos.
-- `useCreateProduct.js`: crea nuevos productos.
+### Backend
 
-De esta forma, `App.jsx` queda principalmente encargado de la interfaz y de la interacción con los componentes.
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- Zod
+- JWT
+- Pino
+- Vitest
+- Supertest
 
-### Objetivo del refactor
+### Infraestructura
 
-La reorganización busca mejorar la mantenibilidad, reutilización y claridad del código sin agregar nueva funcionalidad al proyecto.
+- Docker
+- Docker Compose
+- MongoDB Atlas
+- Git
+- GitHub
 
-## Tarea 5 — Implementación de microservicios
+---
 
-En esta etapa el backend fue dividido en dos microservicios independientes:
+## Instalación
 
-- `auth-service`: encargado de la autenticación y generación de tokens JWT.
-- `product-service`: encargado de la gestión de productos.
+### 1. Clonar el repositorio
 
-Cada servicio funciona de manera independiente y utiliza un puerto diferente.
+````bash
+git clone https://github.com/Karl2310/Api-Rest-de-Productos.git
+cd Api-Rest-de-Productos
+`````
 
-### Arquitectura
+### 2. Instalar dependencias del Auth Service
 
-```text
-                    ┌─────────────────────┐
-                    │       Cliente       │
-                    └──────────┬──────────┘
-                               │
-                 ┌─────────────┴─────────────┐
-                 │                           │
-                 ▼                           ▼
-        ┌─────────────────┐         ┌─────────────────┐
-        │   Auth Service  │         │ Product Service │
-        │    Puerto 3001  │◄────────│    Puerto 3002  │
-        └────────┬────────┘   REST  └────────┬────────┘
-                 │                           │
-                 ▼                           ▼
-        ┌─────────────────┐         ┌─────────────────┐
-        │ MongoDB Atlas   │         │ MongoDB Atlas   │
-        │    auth_db      │         │   products_db   │
-        └─────────────────┘         └─────────────────┘
+cd microservicios/auth-service
+npm install
 
-Bases de datos
+### 3. Instalar dependencias del Product Service
 
-Cada microservicio utiliza una base de datos independiente en MongoDB Atlas:
+cd ../product-service
+npm install
 
-Auth Service → auth_db
-Product Service → products_db
+### 4. Instalar dependencias del Frontend
 
-No se comparten colecciones entre los servicios.
+cd ../../frontend
+npm install
 
-Docker
+---
 
-Cada microservicio cuenta con su propio Dockerfile.
+## Ejecución
 
-El archivo docker-compose.yml se encuentra en la raíz del proyecto y permite levantar los servicios utilizando un solo comando:
+Opción recomendada: Docker Compose
 
-docker compose up --build
-
-Los servicios quedan disponibles en:
-
-Auth Service: http://localhost:3001
-Product Service: http://localhost:3002
-
-Las bases de datos utilizan MongoDB Atlas como servicio externo. Docker se utiliza para ejecutar y coordinar los microservicios.
-
-
-Ejecución
-
-Para levantar los microservicios mediante Docker:
+Desde la raíz:
 
 docker compose up --build
 
-Para detenerlos:
+Luego iniciar el frontend en otra terminal:
 
+cd frontend
+npm run dev
+
+Abrir:
+
+http://localhost:5173
+
+---
+
+## Usuario de prueba
+
+El proyecto incluye un usuario demo configurado mediante variables de entorno:
+
+Usuario: admin
+Contraseña: 123456
+
+---
+
+## Testing
+
+El proyecto incluye diferentes niveles de testing.
+
+Test unitario
+
+Se utiliza Vitest para probar la lógica del servicio sin acceder a MongoDB real.
+
+Ubicación:
+
+microservicios/product-service/tests/product.service.test.js
+
+El repositorio se reemplaza mediante mocks.
+
+Ejecutar:
+
+cd microservicios/product-service
+npm test
+
+Test de integración
+
+Se utiliza Supertest para probar un endpoint completo del Product Service.
+
+Ubicación:
+
+microservicios/product-service/tests/product.routes.test.js
+
+Ejecutar:
+
+npm test
+
+Test End-to-End
+
+Se utiliza Playwright para comprobar el flujo principal del frontend.
+
+Ubicación:
+
+frontend/tests/product-flow.spec.js
+
+El test verifica:
+
+Login
+  ↓
+Dashboard
+  ↓
+Completar formulario
+  ↓
+Crear producto
+  ↓
+Confirmar creación
+
+Para ejecutar:
+
+cd frontend
+npx playwright test
+
+Para visualizar el navegador durante la prueba:
+
+npx playwright test --headed
+
+---
+
+## Evolución del proyecto
+
+El proyecto fue desarrollado progresivamente:
+
+Tarea 1
+
+Creación de la API REST de productos con Express, MongoDB/Mongoose y validaciones.
+
+Tarea 2
+
+Incorporación del frontend React y autenticación mediante JWT.
+
+Tarea 3
+
+Refactorización del backend y frontend para mejorar la separación de responsabilidades.
+
+Tarea 4
+
+Diseño de una arquitectura basada en microservicios.
+
+Tarea 5
+
+Implementación real de:
+
+Auth Service.
+Product Service.
+MongoDB Atlas.
+Comunicación REST.
+Docker Compose.
+Tarea 6
+
+Incorporación de:
+
+Tests unitarios.
+Tests de integración.
+Tests E2E.
+Playwright.
+Logging estructurado con Pino.
+Tarea 7
+
+Integración final, documentación y preparación de la demostración del sistema.
+
+
+
+Comandos principales
+Levantar microservicios
+docker compose up --build
+Detener microservicios
 docker compose down
+Ejecutar tests del Product Service
+cd microservicios/product-service
+npm test
+Ejecutar tests E2E
+cd frontend
+npx playwright test
+Ejecutar frontend
+cd frontend
+npm run dev

@@ -1,0 +1,24 @@
+{
+  "name": "api-rest-de-productos",
+  "version": "1.0.0",
+  "description": "1. Entrar a la carpeta `backend`. 2. Ejecutar `npm install`. 3. Crear un archivo `.env` con tu conexión a MongoDB. 4. Levantar el proyecto con `npm start`.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "npm --prefix microservicios/product-service test && npm --prefix frontend exec playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Karl2310/Api-Rest-de-Productos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Karl2310/Api-Rest-de-Productos/issues"
+  },
+  "homepage": "https://github.com/Karl2310/Api-Rest-de-Productos#readme"
+}
